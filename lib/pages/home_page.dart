@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:lista_producto/models/list_dummy.dart';
 import 'package:lista_producto/models/producto.dart';
 import 'package:lista_producto/pages/register_product_page.dart';
+import 'package:lista_producto/providers/db_provider.dart';
 
 class HomePage extends StatefulWidget {
   static const namePage = 'Home';
@@ -38,40 +39,45 @@ class _HomePageState extends State<HomePage> {
 
   // para la siguiente clase
   // ListDummy listaArticulos = ListDummy();
-
-  Producto leche = Producto(
-    nombre: 'Leche',
-    precio: 15,
-    cantidad: 1,
-    total: 0,
-  );
-
-  Producto atun = Producto(
-    nombre: 'Atun',
-    precio: 1200,
-    cantidad: 1,
-    total: 0,
-  );
+  DBProvider provider = DBProvider();
 
   @override
   Widget build(BuildContext context) {
     print('entrando al metodo build');
     return Scaffold(
-      appBar: AppBar(title: Text(tituloAppBar)),
-
-      // para la siguiente clase
-      // body: ListView.builder(
-      //   itemCount: listaArticulos.items.length,
-      //   itemBuilder: (BuildContext context, int indice){
-      //     return _item(listaArticulos.items[indice]);
-      //   },
-      // ),
-      body: ListView(
-        children: <Widget>[
-          _item(leche),
-          _item(atun),
+      appBar: AppBar(
+        title: Text(tituloAppBar),
+        actions: <Widget>[
+          // Center(child: Text('${listaArticulos.calcularTotalProductos()}'))
         ],
       ),
+
+      // para la siguiente clase
+      body: FutureBuilder(
+          initialData: [],
+          future: provider.obtenerProductos(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              List datos = snapshot.data;
+              if (datos.length == 0) {
+                return Text('No items');
+              } else {
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await Future.delayed(Duration(seconds: 3));
+                    setState(() {});
+                  },
+                  child: ListView.builder(
+                    itemCount: snapshot.data.items.length,
+                    itemBuilder: (BuildContext context, int indice) {
+                      return _item(snapshot.data.items[indice]);
+                    },
+                  ),
+                );
+              }
+            }
+            return Text('cargando datos');
+          }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).pushNamed(RegisterProductPage.namePage);
@@ -87,11 +93,11 @@ class _HomePageState extends State<HomePage> {
       elevation: 5,
       child: Container(
         child: ListTile(
-          leading: Image.network(
-            'https://ichef.bbci.co.uk/news/ws/410/amz/worldservice/live/assets/images/2014/11/05/141105131956_leche_624x351_thinkstock.jpg',
-            fit: BoxFit.cover,
-            width: 50,
-          ),
+          // leading: Image.network(
+          //   'https://ichef.bbci.co.uk/news/ws/410/amz/worldservice/live/assets/images/2014/11/05/141105131956_leche_624x351_thinkstock.jpg',
+          //   fit: BoxFit.cover,
+          //   width: 50,
+          // ),
           title: Text(producto.nombre),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -111,8 +117,9 @@ class _HomePageState extends State<HomePage> {
               FlatButton(
                 onPressed: () {
                   // implementar metodo
-                  producto.cantidad = producto.cantidad - 1;
-
+                  if (producto.cantidad >= 1) {
+                    producto.cantidad = producto.cantidad - 1;
+                  }
                   producto.calcularTotal(producto.cantidad, producto.precio);
                   setState(() {});
                 },

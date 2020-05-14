@@ -18,4 +18,15 @@ class ListDummy {
     print('articulo agregado exitosamente');
     items.add(producto);
   }
+
+  calcularTotalProductos(){
+
+    int resultado = 0;
+
+    for(int i = 0; i < items.length; i++){
+      resultado = resultado + items[i].total;
+    }
+
+    return resultado;    
+  }
 }

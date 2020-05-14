@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:lista_producto/models/list_dummy.dart';
+// import 'package:lista_producto/models/list_dummy.dart';
 import 'package:lista_producto/models/producto.dart';
+import 'package:lista_producto/providers/db_provider.dart';
 
 class RegisterProductPage extends StatelessWidget {
   static const namePage = 'register_product';
 
-  final listDummy = ListDummy();
+  // final listDummy = ListDummy();
+  final DBProvider provider = DBProvider();
   final nombreController = TextEditingController();
   final precioController = TextEditingController();
 
@@ -36,14 +38,14 @@ class RegisterProductPage extends StatelessWidget {
           ),
           SizedBox(height: 50),
           RaisedButton.icon(
-            onPressed: () {
+            onPressed: () async {
               final prod = Producto(
                 nombre: nombreController.text,
-                precio: int.parse(precioController.text),
+                precio: double.parse(precioController.text),
                 cantidad: 0,
                 total: 0,
               );
-              listDummy.agregarArticulo(prod);
+              await provider.guardarProducto(prod);
               Navigator.of(context).pop();
             },
             icon: Icon(Icons.send),
