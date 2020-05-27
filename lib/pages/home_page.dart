@@ -49,35 +49,39 @@ class _HomePageState extends State<HomePage> {
         title: Text(tituloAppBar),
         actions: <Widget>[
           // Center(child: Text('${listaArticulos.calcularTotalProductos()}'))
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {});
+            },
+          ),
         ],
       ),
 
       // para la siguiente clase
-      body: FutureBuilder(
-          initialData: [],
-          future: provider.obtenerProductos(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              List datos = snapshot.data;
-              if (datos.length == 0) {
-                return Text('No items');
-              } else {
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    await Future.delayed(Duration(seconds: 3));
-                    setState(() {});
-                  },
-                  child: ListView.builder(
-                    itemCount: snapshot.data.items.length,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {});
+        },
+        child: FutureBuilder(
+            future: provider.obtenerProductos(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<Producto> datos = snapshot.data;
+                if (datos.length == 0) {
+                  return Center(child: Text('No items'));
+                } else {
+                  return ListView.builder(
+                    itemCount: datos.length,
                     itemBuilder: (BuildContext context, int indice) {
-                      return _item(snapshot.data.items[indice]);
+                      return _item(datos[indice]);
                     },
-                  ),
-                );
+                  );
+                }
               }
-            }
-            return Text('cargando datos');
-          }),
+              return Text('cargando datos');
+            }),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).pushNamed(RegisterProductPage.namePage);
@@ -88,45 +92,68 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _item(Producto producto) {
-    return Card(
-      margin: EdgeInsets.all(8),
-      elevation: 5,
-      child: Container(
-        child: ListTile(
-          // leading: Image.network(
-          //   'https://ichef.bbci.co.uk/news/ws/410/amz/worldservice/live/assets/images/2014/11/05/141105131956_leche_624x351_thinkstock.jpg',
-          //   fit: BoxFit.cover,
-          //   width: 50,
-          // ),
-          title: Text(producto.nombre),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  // implementar metodo
-                  producto.cantidad = producto.cantidad + 1;
+    return Dismissible(
+      key: UniqueKey(),
+      background: Container(
+        padding: EdgeInsets.only(left: 16),
+        color: Colors.red,
+        child: Icon(Icons.delete, color: Colors.white),
+        alignment: Alignment.centerLeft,
+      ),
+      secondaryBackground: Container(
+        padding: EdgeInsets.only(right: 16),
+        color: Colors.blue,
+        child: Icon(Icons.update, color: Colors.white),
+        alignment: Alignment.centerRight,
+      ),
+      onDismissed: (DismissDirection direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          bool status = await provider.borrarProducto(producto);
+          print(status);
+        }
+      },
+      child: Card(
+        margin: EdgeInsets.all(8),
+        elevation: 5,
+        child: Container(
+          child: ListTile(
+            // leading: Image.network(
+            //   'https://ichef.bbci.co.uk/news/ws/410/amz/worldservice/live/assets/images/2014/11/05/141105131956_leche_624x351_thinkstock.jpg',
+            //   fit: BoxFit.cover,
+            //   width: 50,
+            // ),
+            title: Text(producto.nombre),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                FlatButton(
+                  onPressed: () async {
+                    // implementar metodo
+                    producto.cantidad = producto.cantidad + 1;
 
-                  producto.calcularTotal(producto.cantidad, producto.precio);
-                  setState(() {});
-                },
-                child: Icon(Icons.add, color: Colors.purple),
-              ),
-              // $contador.toString()
-              Text('${producto.cantidad}'),
-              FlatButton(
-                onPressed: () {
-                  // implementar metodo
-                  if (producto.cantidad >= 1) {
-                    producto.cantidad = producto.cantidad - 1;
-                  }
-                  producto.calcularTotal(producto.cantidad, producto.precio);
-                  setState(() {});
-                },
-                child: Icon(Icons.remove, color: Colors.red),
-              ),
-              Text('${producto.total}'),
-            ],
+                    producto.calcularTotal(producto.cantidad, producto.precio);
+                    bool resp = await provider.actualizarProducto(producto);
+                    if (resp) setState(() {});
+                  },
+                  child: Icon(Icons.add, color: Colors.purple),
+                ),
+                // $contador.toString()
+                Text('${producto.cantidad}'),
+                FlatButton(
+                  onPressed: () async {
+                    // implementar metodo
+                    if (producto.cantidad >= 1) {
+                      producto.cantidad = producto.cantidad - 1;
+                    }
+                    producto.calcularTotal(producto.cantidad, producto.precio);
+                    bool resp = await provider.actualizarProducto(producto);
+                    if (resp) setState(() {});
+                  },
+                  child: Icon(Icons.remove, color: Colors.red),
+                ),
+                Text('${producto.total}'),
+              ],
+            ),
           ),
         ),
       ),

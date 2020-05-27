@@ -24,6 +24,7 @@ class DBProvider {
     });
   }
 
+  // CREATE
   Future guardarProducto(Producto producto) async {
     Database myDb = await initDB();
     int res = await myDb.insert('Productos', producto.toJson());
@@ -34,6 +35,7 @@ class DBProvider {
     }
   }
 
+  // READ
   Future<List<Producto>> obtenerProductos() async {
     Database myDb = await initDB();
     List res = await myDb.query('Productos');
@@ -46,6 +48,34 @@ class DBProvider {
         return Producto.fromJson(json);
       }));
     }
+  }
+
+  // UPDATE
+  Future<bool> actualizarProducto(Producto producto) async {
+    Database myDb = await initDB();
+    int resp = await myDb.update(
+      'Productos',
+      {
+        'cantidad' : producto.cantidad,
+        'total' : producto.total,
+      },
+      where: 'id = ?',
+      whereArgs: ['${producto.id}'],
+    );
+
+    if(resp >= 1) return true;
+    else return false;
+  }
+
+  // DELETE
+  Future<bool> borrarProducto(Producto producto) async {
+    Database myDb = await initDB();
+    int resp = await myDb
+        .delete('Productos', where: 'id = ?', whereArgs: ['${producto.id}']);
+    if (resp >= 1)
+      return true;
+    else
+      return false;
   }
 
   Future dispose() async {

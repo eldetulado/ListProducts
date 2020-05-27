@@ -1,4 +1,5 @@
 class Producto {
+  int id;
   String nombre;
   int cantidad;
   double total;
@@ -14,6 +15,7 @@ class Producto {
   // }
 
   Producto.fromJson(Map<String, dynamic> json) {
+    this.id = json['id'];
     this.nombre = json['nombre']; // leche
     this.cantidad = json['cantidad']; // 1
     this.total = json['total']; // 1500
